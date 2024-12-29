@@ -1,11 +1,15 @@
+import bcrypt from 'bcrypt';
 import { model, Schema } from 'mongoose';
-import { IUser } from './user.interface';
+import { ServerConfig } from '../../config';
+import { IUser } from './user.Interface';
+
 const userSchema = new Schema<IUser>(
   {
     id: { type: String, required: true },
     password: {
       type: String,
       required: true,
+      maxlength: [20, 'Password more then 20 character'],
     },
     needsPasswordChange: {
       type: Boolean,
@@ -27,7 +31,22 @@ const userSchema = new Schema<IUser>(
   },
   {
     timestamps: true,
-    versionKey: true,
+    versionKey: false,
   },
 );
+// pre save middleware/ hook: will work on create() save()
+userSchema.pre('save', async function (next) {
+  // hashing password and save in to DB
+  this.password = await bcrypt.hash(
+    this.password,
+    Number(ServerConfig.bcrypt_salt_rounds),
+  );
+
+  next();
+});
+// set " afyer saving password"
+userSchema.post('save', function (doc, next) {
+  doc.password = ' ';
+  next();
+});
 export const User = model<IUser>('User', userSchema);

@@ -1,7 +1,5 @@
-import bcrypt from 'bcrypt';
 import { Schema, model } from 'mongoose';
 import validator from 'validator';
-import { ServerConfig } from '../../config';
 import {
   TGuardian,
   TLocalGuardian,
@@ -104,13 +102,14 @@ const localGuardianSchema = new Schema<TLocalGuardian>({
 // Main Student Schema
 const studentSchema = new Schema<TStudent, TStudentModel>(
   {
-    id: { type: String, required: true, unique: true },
-    password: {
-      type: String,
-      required: true,
-
-      maxlength: [20, 'Password more then 20 character'],
+    id: { type: String, required: [true, 'Id is required'], unique: true },
+    user: {
+      type: Schema.Types.ObjectId,
+      required: [true, 'User id is required'],
+      unique: true,
+      ref: 'User',
     },
+
     name: { type: userNameSchema, required: true },
     gender: {
       type: String,
@@ -153,11 +152,7 @@ const studentSchema = new Schema<TStudent, TStudentModel>(
         message: '{VALUE} is not a valid URL',
       },
     },
-    isActive: {
-      type: String,
-      enum: ['active', 'blocked'],
-      default: 'active',
-    },
+
     isDeleted: {
       type: Boolean,
       default: false,
@@ -174,25 +169,6 @@ const studentSchema = new Schema<TStudent, TStudentModel>(
 // virtual
 studentSchema.virtual('fullName').get(function () {
   return `${this.name.firstName} ${this.name.middleName} ${this.name.lastName}`;
-});
-
-// pre save middleware/ hook: will work on create() save()
-studentSchema.pre('save', async function (next) {
-  // console.log(this, 'pre hook: we will save the data ');
-
-  // hashing password and save in to DB
-  this.password = await bcrypt.hash(
-    this.password,
-    Number(ServerConfig.bcrypt_salt_rounds),
-  );
-
-  next();
-});
-// post save middleware/ hook
-studentSchema.post('save', function (doc, next) {
-  doc.password = ' ';
-  // console.log(this, 'post hook: we  saved our data');
-  next();
 });
 
 //Query middleware
@@ -216,11 +192,5 @@ studentSchema.statics.isUserExists = async function (id: string) {
   const existingUser = await Student.findOne({ id });
   return existingUser;
 };
-
-// creating a custom instance method
-// studentSchema.methods.isUserExists = async function (id: string) {
-//   const existingUser = await Student.findOne({ id });
-//   return existingUser;
-// };
 
 export const Student = model<TStudent, TStudentModel>('Student', studentSchema);
