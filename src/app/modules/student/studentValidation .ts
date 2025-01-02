@@ -42,30 +42,34 @@ const localGuardianValidationSchema = z.object({
 });
 
 // Main Student ValidationSchema
-const studentValidationSchema = z.object({
-  id: z.string().nonempty('ID is required'),
-  password: z.string().nonempty('Password is required').max(20),
-  name: userNameValidationSchema,
-  gender: genderEnum,
-  dateOfBirth: z.string().nonempty('Date of birth is required'),
-  email: z.string().email('Invalid email format'),
-  contactNo: z
-    .string()
-    .nonempty('Contact number is required')
-    .regex(/^\+?[0-9]{10,15}$/, 'Invalid phone number format'),
-  emergencyContactNo: z
-    .string()
-    .nonempty('Emergency contact number is required')
-    .regex(/^\+?[0-9]{10,15}$/, 'Invalid phone number format'),
-  bloodGroup: bloodGroupEnum,
-  presentAddress: z.string().nonempty('Present address is required'),
-  permanentAddress: z.string().nonempty('Permanent address is required'),
-  guardian: guardianValidationSchema,
-  localGuardian: localGuardianValidationSchema,
-  profileImg: z.string().url('Invalid URL format').optional(),
-  isActive: z.enum(['active', 'blocked']).optional(),
-  isDeleted: z.boolean(),
+export const createStudentValidationSchema = z.object({
+  body: z.object({
+    password: z.string().nonempty('Password is required').max(20),
+    student: z.object({
+      name: userNameValidationSchema,
+      gender: genderEnum,
+      dateOfBirth: z.string().optional(),
+      email: z.string().email('Invalid email format'),
+      contactNo: z
+        .string()
+        .nonempty('Contact number is required')
+        .regex(/^\+?[0-9]{10,15}$/, 'Invalid phone number format'),
+      emergencyContactNo: z
+        .string()
+        .nonempty('Emergency contact number is required')
+        .regex(/^\+?[0-9]{10,15}$/, 'Invalid phone number format'),
+      bloodGroup: bloodGroupEnum,
+      presentAddress: z.string().nonempty('Present address is required'),
+      permanentAddress: z.string().nonempty('Permanent address is required'),
+      guardian: guardianValidationSchema,
+      admisionSemister: z.string(),
+      localGuardian: localGuardianValidationSchema,
+      profileImg: z.string().url('Invalid URL format').optional(),
+    }),
+  }),
 });
 
 // Export the Validationschema
-export default studentValidationSchema;
+export const studentValidations = {
+  createStudentValidationSchema,
+};

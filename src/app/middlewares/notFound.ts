@@ -9,4 +9,5 @@ const notFound = (req: Request, res: Response, next: NextFunction) => {
     error: '',
   });
 };
+
 export default notFound;
